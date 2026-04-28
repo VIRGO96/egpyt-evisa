@@ -25,53 +25,26 @@ export const DeclarationSection = ({
           Declaration statement
         </h4>
         <div className="space-y-3 text-xs text-gray-700">
-          <p>
-            Before submitting your application, please confirm the following:
-          </p>
+          <p>By sending this application, you confirm that:</p>
           <ul className="list-disc list-outside ml-5 space-y-2">
             <li>
-              You acknowledge that giving false information can lead to your
-              application being refused, you may be prosecuted, and you may be
-              banned from the UK.
+              To the best of your knowledge, the information you have given is
+              correct.
             </li>
             <li>
-              If applying on someone else's behalf, you must confirm the
-              application is complete and correct with them.
+              If you have given any false information, your application can be
+              refused, you may be prosecuted, and you may be banned from
+              entering Egypt.
+            </li>
+            <li>
+              If you apply on behalf of someone else, you must have confirmed
+              with them that the application is complete and correct.
             </li>
           </ul>
         </div>
       </div>
 
       <div className="space-y-4">
-        <div data-error={`t${index}_declarationAccepted`}>
-          <label
-            className={`flex flex-row sm:items-start gap-3 cursor-pointer p-4 rounded-lg border-2 transition-colors ${
-              errors[`t${index}_declarationAccepted`]
-                ? "border-destructive bg-destructive/5"
-                : "border-input bg-muted/30 hover:bg-muted/50"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={traveller.declarationAccepted || false}
-              onChange={(e) =>
-                updateTraveller(index, "declarationAccepted", e.target.checked)
-              }
-              className="w-4 h-4 text-primary rounded flex-shrink-0  self-start mt-1 sm:mt-1"
-            />
-            <span className="text-xs text-gray-700 text-left font-semibold">
-              I confirm that the information provided is correct to the best of
-              my knowledge and I understand the consequences of providing false
-              information.
-            </span>
-          </label>
-          {errors[`t${index}_declarationAccepted`] && (
-            <p className="text-xs text-destructive mt-2">
-              {errors[`t${index}_declarationAccepted`]}
-            </p>
-          )}
-        </div>
-
         <div data-error={`t${index}_termsAccepted`}>
           <label
             className={`flex flex-row sm:items-start gap-3 cursor-pointer p-4 rounded-lg border-2 transition-colors ${
@@ -96,7 +69,7 @@ export const DeclarationSection = ({
               >
                 Privacy Policy,
               </a>
-               <a
+              <a
                 href="/refund-policy"
                 className="text-primary font-semibold hover:text-primary hover:font-bold duration-300 underline mx-1"
               >
@@ -124,33 +97,35 @@ export const DeclarationSection = ({
           )}
         </div>
 
-        <div data-error={`t${index}_googlePoliciesAccepted`}>
+        <div data-error={`t${index}_nonRefundableAccepted`}>
           <label
             className={`flex flex-row sm:items-start gap-3 cursor-pointer p-4 rounded-lg border-2 transition-colors ${
-              errors[`t${index}_googlePoliciesAccepted`]
+              errors[`t${index}_nonRefundableAccepted`]
                 ? "border-destructive bg-destructive/5"
                 : "border-input bg-muted/30 hover:bg-muted/50"
             }`}
           >
             <input
               type="checkbox"
-              checked={traveller.googlePoliciesAccepted || false}
+              checked={traveller.nonRefundableAccepted || false}
               onChange={(e) =>
                 updateTraveller(
                   index,
-                  "googlePoliciesAccepted",
+                  "nonRefundableAccepted",
                   e.target.checked
                 )
               }
               className="w-4 h-4 text-primary rounded flex-shrink-0 mt-1 sm:mt-1 self-start"
             />
             <span className="text-xs text-gray-700 font-semibold text-left">
-             By submitting personal information, including passport or identity data, you consent to its use solely for processing your travel/ETA application.
+              This service is not refundable after submission or in case the
+              electronic visa application has been rejected by the Egyptian
+              authorities.
             </span>
           </label>
-          {errors[`t${index}_googlePoliciesAccepted`] && (
+          {errors[`t${index}_nonRefundableAccepted`] && (
             <p className="text-xs text-destructive mt-2">
-              {errors[`t${index}_googlePoliciesAccepted`]}
+              {errors[`t${index}_nonRefundableAccepted`]}
             </p>
           )}
         </div>

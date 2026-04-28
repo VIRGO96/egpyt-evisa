@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { TravellerData } from "@/types/form";
 import { COUNTRIES } from "@/utils/countries";
 import { Search, ChevronDown, MapPin, Mail, CheckCircle } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -64,29 +64,7 @@ export const ContactDetailsSection = ({
     }
   }, [countdown]);
 
-  useEffect(() => {
-    if (!traveller.country || !traveller.nationality) {
-      detectCountry();
-    }
-  }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-        setSearchTerm("");
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const detectCountry = async () => {
+  const detectCountry = useCallback(async () => {
     try {
       const fallbackResponse = await fetch("https://api.country.is/");
       const fallbackData = await fallbackResponse.json();
@@ -120,7 +98,29 @@ export const ContactDetailsSection = ({
     } finally {
       setIsDetecting(false);
     }
-  };
+  }, [index, traveller.country, traveller.nationality, updateTraveller]);
+
+  useEffect(() => {
+    if (!traveller.country || !traveller.nationality) {
+      detectCountry();
+    }
+  }, [detectCountry, traveller.country, traveller.nationality]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+        setSearchTerm("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSelectCountry = (countryCode: string) => {
     updateTraveller(index, "country", countryCode);
@@ -423,7 +423,56 @@ export const ContactDetailsSection = ({
           </p>
         )}
       </div>
-      {/* Country Dropdown - Updated with Enhanced Dropdown */}
+
+      <div data-error={`t${index}_address`}>
+        <Label
+          htmlFor={`address-${index}`}
+          className="text-base font-semibold mb-2 block"
+        >
+          Current address *
+        </Label>
+        <Input
+          id={`address-${index}`}
+          value={traveller.address || ""}
+          onChange={(e) => updateTraveller(index, "address", e.target.value)}
+          className={`rounded-lg border-2 ${
+            errors[`t${index}_address`] ? "border-destructive" : "border-input"
+          }`}
+          placeholder="123 Main Street, Apartment 4B"
+        />
+        {errors[`t${index}_address`] && (
+          <p className="text-sm text-destructive mt-1">
+            {errors[`t${index}_address`]}
+          </p>
+        )}
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div data-error={`t${index}_city`}>
+          <Label
+            htmlFor={`city-${index}`}
+            className="text-base font-semibold mb-2 block"
+          >
+            City *
+          </Label>
+          <Input
+            id={`city-${index}`}
+            value={traveller.city || ""}
+            onChange={(e) => updateTraveller(index, "city", e.target.value)}
+            className={`rounded-lg border-2 ${
+              errors[`t${index}_city`] ? "border-destructive" : "border-input"
+            }`}
+            placeholder="City"
+          />
+          {errors[`t${index}_city`] && (
+            <p className="text-sm text-destructive mt-1">
+              {errors[`t${index}_city`]}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Country (after City) */}
       <div data-error={`t${index}_country`} ref={dropdownRef}>
         <Label
           htmlFor={`country-${index}`}
@@ -531,74 +580,6 @@ export const ContactDetailsSection = ({
             {errors[`t${index}_country`]}
           </p>
         )}
-      </div>
-      <div data-error={`t${index}_address`}>
-        <Label
-          htmlFor={`address-${index}`}
-          className="text-base font-semibold mb-2 block"
-        >
-          Home address *
-        </Label>
-        <Input
-          id={`address-${index}`}
-          value={traveller.address || ""}
-          onChange={(e) => updateTraveller(index, "address", e.target.value)}
-          className={`rounded-lg border-2 ${
-            errors[`t${index}_address`] ? "border-destructive" : "border-input"
-          }`}
-          placeholder="123 Main Street, Apartment 4B"
-        />
-        {errors[`t${index}_address`] && (
-          <p className="text-sm text-destructive mt-1">
-            {errors[`t${index}_address`]}
-          </p>
-        )}
-      </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div data-error={`t${index}_city`}>
-          <Label
-            htmlFor={`city-${index}`}
-            className="text-base font-semibold mb-2 block"
-          >
-            City *
-          </Label>
-          <Input
-            id={`city-${index}`}
-            value={traveller.city || ""}
-            onChange={(e) => updateTraveller(index, "city", e.target.value)}
-            className={`rounded-lg border-2 ${
-              errors[`t${index}_city`] ? "border-destructive" : "border-input"
-            }`}
-            placeholder="New York"
-          />
-          {errors[`t${index}_city`] && (
-            <p className="text-sm text-destructive mt-1">
-              {errors[`t${index}_city`]}
-            </p>
-          )}
-        </div>
-
-        <div data-error={`t${index}_zipCode`}>
-          <Label
-            htmlFor={`zipCode-${index}`}
-            className="text-base font-medium mb-2 block"
-          >
-            Zip code (optional)
-          </Label>
-          <Input
-            id={`zipCode-${index}`}
-            value={traveller.zipCode || ""}
-            onChange={(e) => updateTraveller(index, "zipCode", e.target.value)}
-            className="rounded-lg border-2 border-input"
-            placeholder="12345"
-            maxLength={15}
-          />
-          {errors[`t${index}_zipCode`] && (
-            <p className="text-sm text-destructive mt-1">
-              {errors[`t${index}_zipCode`]}
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );

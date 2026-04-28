@@ -17,9 +17,15 @@ export interface FormData {
 
 export interface TravellerData {
   applicationId: string;
+  // Travel Information
+  countryOfDeparture?: string;
+  expectedArrivalDate?: string;
+  expectedDepartureDate?: string;
+
   // Personal Information
   nationality: string;
   fullName: string;
+  maritalStatus?: string;
   otherNames: boolean | string;
   otherNamesValue?: string;
   hasJob: boolean | string;
@@ -31,6 +37,17 @@ export interface TravellerData {
   otherNationalitiesValue?: string[];
   passportExpiry?: string;
   address?: string;
+  visitedUkBefore?: boolean | string;
+  lastUkEntryDate?: string;
+  lastUkExitDate?: string;
+  lastUkStayAddress?: string;
+  willBeHostedInUk?: boolean | string;
+  hostName?: string;
+  hostType?: string;
+  hostPhoneNumber?: string;
+  hostFullAddress?: string;
+  travelExpensePayer?: string;
+  travelExpensePayerDetails?: string;
 
   // Age-based fields
   parentName?: string;
@@ -59,6 +76,7 @@ export interface TravellerData {
   declarationAccepted?: boolean;
   termsAccepted?: boolean;
   googlePoliciesAccepted? : boolean;
+  nonRefundableAccepted?: boolean;
 }
 
 export interface StepProps {

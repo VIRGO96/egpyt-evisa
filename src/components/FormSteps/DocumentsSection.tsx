@@ -3,7 +3,6 @@ import { TravellerData } from "@/types/form";
 import { Upload, CheckCircle2, X, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { fileService } from "@/services/firebase";
-import { calculateAge } from "@/utils/ageRelatedFunctions";
 import { toast } from "sonner";
 
 interface DocumentsSectionProps {
@@ -24,10 +23,7 @@ export const DocumentsSection = ({
   errors,
 }: DocumentsSectionProps) => {
   const [uploadingPassport, setUploadingPassport] = useState(false);
-  const [uploadingParentPassport, setUploadingParentPassport] = useState(false);
-  const [uploadingPersonal, setUploadingPersonal] = useState(false);
-
-  const age = calculateAge(traveller.dateOfBirth || "");
+  const isBusy = uploadingPassport;
 
   // const pushDocumentSubmittedEvent = (
   //   documentTypes: string[],
@@ -45,7 +41,7 @@ export const DocumentsSection = ({
   // };
 
   const handleFileUpload = async (
-    field: "passportPhoto" | "personalPhoto" | "parentPassportPhoto",
+    field: "passportPhoto",
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
@@ -67,7 +63,7 @@ export const DocumentsSection = ({
       return;
     }
 
-    if (uploadingPassport || uploadingParentPassport || uploadingPersonal) {
+    if (isBusy) {
       toast.warning(
         "Please wait for the current upload to complete before uploading another file."
       );
@@ -89,36 +85,12 @@ export const DocumentsSection = ({
     updateTraveller(index, field, fileObject);
 
     try {
-      if (field === "passportPhoto") {
-        setUploadingPassport(true);
-      } else if (field === "parentPassportPhoto") {
-        setUploadingParentPassport(true);
-      } else {
-        setUploadingPersonal(true);
-      }
+      setUploadingPassport(true);
 
       const applicationId = traveller.applicationId || `temp-${Date.now()}`;
 
       let uploadResult;
-      if (field === "passportPhoto") {
-        uploadResult = await fileService.uploadPassportPhoto(
-          file,
-          applicationId,
-          index
-        );
-      } else if (field === "parentPassportPhoto") {
-        uploadResult = await fileService.uploadParentPassportPhoto(
-          file,
-          applicationId,
-          index
-        );
-      } else {
-        uploadResult = await fileService.uploadPersonalPhoto(
-          file,
-          applicationId,
-          index
-        );
-      }
+      uploadResult = await fileService.uploadPassportPhoto(file, applicationId, index);
 
       const uploadedFileObject = {
         file: file,
@@ -144,19 +116,8 @@ export const DocumentsSection = ({
       };
 
       const hasPassport = !!newTraveller.passportPhoto?.uploaded;
-      const hasPersonal = !!newTraveller.personalPhoto?.uploaded;
-      const hasParent =
-        age !== 0 && age < 12
-          ? !!newTraveller.parentPassportPhoto?.uploaded
-          : true;
-
-      if (hasPassport && hasPersonal && hasParent) {
-        const documentTypes = ["Passport Bio Page", "Personal Photo"];
-        if (age !== 0 && age < 12) {
-          documentTypes.push("Parent Passport Bio Page");
-        }
-
-        // pushDocumentSubmittedEvent(documentTypes);
+      if (hasPassport) {
+        // pushDocumentSubmittedEvent(["Passport Bio Page"]);
       }
     } catch (error) {
       console.error("❌ Firebase upload failed:", error);
@@ -177,18 +138,12 @@ export const DocumentsSection = ({
       // Show error message
       toast.error(`Upload failed: ${error.message}. Please try again.`);
     } finally {
-      if (field === "passportPhoto") {
-        setUploadingPassport(false);
-      } else if (field === "parentPassportPhoto") {
-        setUploadingParentPassport(false);
-      } else {
-        setUploadingPersonal(false);
-      }
+      setUploadingPassport(false);
     }
   };
 
   const removeFile = async (
-    field: "passportPhoto" | "personalPhoto" | "parentPassportPhoto"
+    field: "passportPhoto"
   ) => {
     const fileData = traveller[field] as any;
 
@@ -209,7 +164,7 @@ export const DocumentsSection = ({
     description,
     isUploading,
   }: {
-    field: "passportPhoto" | "personalPhoto" | "parentPassportPhoto";
+    field: "passportPhoto";
     label: string;
     description?: React.ReactNode;
     isUploading: boolean;
@@ -228,10 +183,7 @@ export const DocumentsSection = ({
               ? "border-destructive bg-destructive/5"
               : hasFile
               ? "border-primary/80 bg-primary/20"
-              : (uploadingPassport ||
-                  uploadingParentPassport ||
-                  uploadingPersonal) &&
-                !isUploading
+              : isBusy && !isUploading
               ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
               : "border-input hover:border-primary/50"
           }`}
@@ -257,11 +209,7 @@ export const DocumentsSection = ({
                 type="button"
                 onClick={() => removeFile(field)}
                 className="text-red-500 hover:text-red-700 p-1"
-                disabled={
-                  uploadingPassport ||
-                  uploadingParentPassport ||
-                  uploadingPersonal
-                }
+                disabled={isBusy}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -275,10 +223,7 @@ export const DocumentsSection = ({
                     Uploading to Firebase...
                   </p>
                 </div>
-              ) : (uploadingPassport ||
-                  uploadingParentPassport ||
-                  uploadingPersonal) &&
-                !isUploading ? (
+              ) : isBusy && !isUploading ? (
                 <div className="flex flex-col items-center space-y-2">
                   <Upload className="h-8 w-8 mx-auto text-gray-400" />
                   <p className="text-sm text-gray-500">
@@ -300,21 +245,13 @@ export const DocumentsSection = ({
           )}
 
           {!hasFile &&
-            !(
-              uploadingPassport ||
-              uploadingParentPassport ||
-              uploadingPersonal
-            ) && (
+            !isBusy && (
               <input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,application/pdf"
                 onChange={(e) => handleFileUpload(field, e)}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                disabled={
-                  uploadingPassport ||
-                  uploadingParentPassport ||
-                  uploadingPersonal
-                }
+                disabled={isBusy}
               />
             )}
         </div>
@@ -345,44 +282,6 @@ export const DocumentsSection = ({
           isUploading={uploadingPassport}
         />
       </div>
-
-      <div data-error={`t${index}_personalPhoto`}>
-        <FileUploadArea
-          field="personalPhoto"
-          label="Personal photo"
-          description={
-            <div className="text-sm space-y-1">
-              <div>• Must be in high resolution taken by phone camera</div>
-              <div>• Showing your full face</div>
-              <div>• Must be in plain background</div>
-              <div>• No head covering for men</div>
-              <div>• No eyeglasses</div>
-              <div>• Neutral face without smile</div>
-              <div>• Supported formats: JPEG, PNG or PDF only</div>
-              <div>• Maximum size: 5 MB max</div>
-            </div>
-          }
-          isUploading={uploadingPersonal}
-        />
-      </div>
-
-      {age !== undefined && age > 0 && age < 12 && (
-        <div data-error={`t${index}_parentPassportPhoto`}>
-          <FileUploadArea
-            field="parentPassportPhoto"
-            label="Parent passport bio page"
-            description={
-              <div className="text-sm space-y-1">
-                <div>• Must be clear without light reflection</div>
-                <div>• Showing the 4 corners of the bio page</div>
-                <div>• Supported formats: JPEG, PNG or PDF only</div>
-                <div>• Maximum size: 5 MB max</div>
-              </div>
-            }
-            isUploading={uploadingParentPassport}
-          />
-        </div>
-      )}
     </div>
   );
 };

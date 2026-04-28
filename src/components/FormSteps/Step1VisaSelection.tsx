@@ -21,22 +21,25 @@ import { DocumentsSection } from "./DocumentsSection";
 import { DeclarationSection } from "./DeclarationSection";
 import {
   validatePersonalInformation,
-  validateAgeSpecificQuestions,
   validateContactDetails,
   validateDocuments,
   validateDeclaration,
 } from "@/utils/formValidation";
 import { PersonalInformationSection } from "./PersonalInformation";
-import { AgeSpecificQuestionsSection } from "./AgeSpecificSection";
 import { ContactDetailsSection } from "./ContactDetailSection";
 import ApplicationService from "@/services/applicationService";
 import { toast } from "sonner";
-import { error } from "console";
-
-const VISA_TYPES = ["United Kingdom ETA - 2 years, Multiple entry"];
+const VISA_TYPES = [
+  "Single entry - 90 Days validity - $75",
+  "Multiple entry - 180 Days validity $115",
+];
 
 const createEmptyTraveller = (): TravellerData => ({
+  countryOfDeparture: "",
+  expectedArrivalDate: "",
+  expectedDepartureDate: "",
   otherNationalities: false,
+  maritalStatus: "",
   fullName: "",
   otherNames: false,
   hasJob: false,
@@ -44,6 +47,17 @@ const createEmptyTraveller = (): TravellerData => ({
   dateOfBirth: "",
   nationality: "",
   applicationId: "",
+  visitedUkBefore: false,
+  lastUkEntryDate: "",
+  lastUkExitDate: "",
+  lastUkStayAddress: "",
+  willBeHostedInUk: false,
+  hostName: "",
+  hostType: "",
+  hostPhoneNumber: "",
+  hostFullAddress: "",
+  travelExpensePayer: "",
+  travelExpensePayerDetails: "",
 });
 
 export const Step1VisaSelection = ({
@@ -93,7 +107,6 @@ export const Step1VisaSelection = ({
       }
 
       const personalErrors = validatePersonalInformation(traveller, index);
-      const ageErrors = validateAgeSpecificQuestions(traveller, index);
       const contactErrors = validateContactDetails(traveller, index);
       const documentErrors = validateDocuments(traveller, index);
       const declarationErrors = validateDeclaration(traveller, index);
@@ -101,7 +114,6 @@ export const Step1VisaSelection = ({
       Object.assign(
         newErrors,
         personalErrors,
-        ageErrors,
         contactErrors,
         documentErrors,
         declarationErrors
@@ -192,7 +204,7 @@ export const Step1VisaSelection = ({
       (window as any).dataLayer = (window as any).dataLayer || [];
       (window as any).dataLayer.push({
         event: "form_starter",
-        form_name: "UK ETA Application",
+        form_name: "Egypt eVisa Application",
         step_number: 1,
         timestamp: new Date().toISOString(),
       });
@@ -219,9 +231,7 @@ export const Step1VisaSelection = ({
   // Check if any traveller has files uploading
   const isAnyUploadInProgress = formData.travellers?.some((traveller) => {
     const passportUploading = traveller.passportPhoto?.uploading;
-    const personalUploading = traveller.personalPhoto?.uploading;
-    const parentPassportUploading = traveller.parentPassportPhoto?.uploading;
-    return passportUploading || personalUploading || parentPassportUploading;
+    return passportUploading;
   });
 
   return (
@@ -300,7 +310,7 @@ export const Step1VisaSelection = ({
                     Travellers
                   </h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Add all travellers applying for UK ETA (
+                    Add all travellers applying for Egypt eVisa (
                     {formData.travellers?.length || 0})
                   </p>
                 </div>
@@ -380,12 +390,6 @@ export const Step1VisaSelection = ({
                               Personal information
                             </h3>
                             <PersonalInformationSection
-                              traveller={traveller}
-                              index={index}
-                              updateTraveller={updateTraveller}
-                              errors={errors}
-                            />
-                            <AgeSpecificQuestionsSection
                               traveller={traveller}
                               index={index}
                               updateTraveller={updateTraveller}
@@ -484,7 +488,7 @@ export const Step1VisaSelection = ({
       )}
 
       <div className="w-full lg:col-span-4 order-1 lg:order-2">
-        <VisaInfoCard />
+        <VisaInfoCard visaType={formData.visaType} />
       </div>
     </div>
   );

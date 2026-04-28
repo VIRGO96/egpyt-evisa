@@ -18,11 +18,51 @@ const calculateAge = (dateOfBirth: string): number => {
   return age;
 };
 
+const toDateOnly = (value?: string): Date | null => {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 export const validatePersonalInformation = (
   traveller: TravellerData,
   index: number
 ): { [key: string]: string } => {
   const errors: { [key: string]: string } = {};
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const minimumArrivalDate = new Date(today);
+  minimumArrivalDate.setDate(minimumArrivalDate.getDate() + 7);
+
+  const expectedArrivalDate = toDateOnly(traveller.expectedArrivalDate);
+  const expectedDepartureDate = toDateOnly(traveller.expectedDepartureDate);
+  const lastUkEntryDate = toDateOnly(traveller.lastUkEntryDate);
+  const lastUkExitDate = toDateOnly(traveller.lastUkExitDate);
+
+  if (!traveller.countryOfDeparture) {
+    errors[`t${index}_countryOfDeparture`] = "Country of departure is required";
+  } else if (traveller.countryOfDeparture === "EG") {
+    errors[`t${index}_countryOfDeparture`] =
+      "Country of departure cannot be Egypt";
+  }
+
+  if (!traveller.expectedArrivalDate) {
+    errors[`t${index}_expectedArrivalDate`] = "Expected arrival date is required";
+  } else if (!expectedArrivalDate || expectedArrivalDate < minimumArrivalDate) {
+    errors[`t${index}_expectedArrivalDate`] =
+      "Expected arrival date must be at least 7 days from today";
+  }
+
+  if (!traveller.expectedDepartureDate) {
+    errors[`t${index}_expectedDepartureDate`] =
+      "Expected departure date is required";
+  } else if (!expectedDepartureDate) {
+    errors[`t${index}_expectedDepartureDate`] = "Enter a valid departure date";
+  } else if (expectedArrivalDate && expectedDepartureDate < expectedArrivalDate) {
+    errors[`t${index}_expectedDepartureDate`] =
+      "Departure date cannot be before arrival date";
+  }
 
   if (!traveller.fullName?.trim()) {
     errors[`t${index}_fullName`] = "Full name is required";
@@ -32,6 +72,10 @@ export const validatePersonalInformation = (
 
   if (!traveller.nationality) {
     errors[`t${index}_nationality`] = "Nationality is required";
+  }
+
+  if (!traveller.maritalStatus) {
+    errors[`t${index}_maritalStatus`] = "Marital status is required";
   }
 
   if (!traveller.passportNumber?.trim()) {
@@ -47,12 +91,18 @@ export const validatePersonalInformation = (
     errors[`t${index}_dateOfBirth`] = "Date of birth is required";
   }
 
-  if (typeof traveller.hasJob !== "boolean") {
-    errors[`t${index}_hasJob`] = "Have Job is required";
+  // Egypt eVisa flow: Profession + Employer are asked directly (no toggle)
+  if (!traveller.jobTitle?.trim()) {
+    errors[`t${index}_jobTitle`] = "Profession is required";
+  } else if (containsMaliciousPatterns(traveller.jobTitle)) {
+    errors[`t${index}_jobTitle`] = "Invalid characters detected in profession";
   }
 
-  if (typeof traveller.otherNames !== "boolean") {
-    errors[`t${index}_otherNames`] = "Have Other Names is required";
+  if (!traveller.employerName?.trim()) {
+    errors[`t${index}_employerName`] = "Employer name is required";
+  } else if (containsMaliciousPatterns(traveller.employerName)) {
+    errors[`t${index}_employerName`] =
+      "Invalid characters detected in employer name";
   }
 
   if (typeof traveller.otherNationalities !== "boolean") {
@@ -67,17 +117,75 @@ export const validatePersonalInformation = (
       "Please select your other nationalities";
   }
 
-  if (traveller.hasJob) {
-    if (!traveller.jobTitle?.trim()) {
-      errors[`t${index}_jobTitle`] = "Job title is required when employed";
-    } else if (containsMaliciousPatterns(traveller.jobTitle)) {
-      errors[`t${index}_jobTitle`] = "Invalid characters detected in job title";
+  if (typeof traveller.visitedUkBefore !== "boolean") {
+    errors[`t${index}_visitedUkBefore`] =
+      "Please answer the Egypt visit question";
+  } else if (traveller.visitedUkBefore) {
+    if (!traveller.lastUkEntryDate?.trim()) {
+      errors[`t${index}_lastUkEntryDate`] =
+        "Last Egypt entry date is required";
     }
-    if (!traveller.employerName?.trim()) {
-      errors[`t${index}_employerName`] =
-        "Employer name is required when employed";
-    } else if (containsMaliciousPatterns(traveller.employerName)) {
-      errors[`t${index}_employerName`] = "Invalid characters detected in employer name";
+
+    if (traveller.lastUkExitDate && !lastUkExitDate) {
+      errors[`t${index}_lastUkExitDate`] = "Enter a valid UK exit date";
+    } else if (
+      lastUkEntryDate &&
+      lastUkExitDate &&
+      lastUkExitDate < lastUkEntryDate
+    ) {
+      errors[`t${index}_lastUkExitDate`] =
+        "UK exit date cannot be before UK entry date";
+    }
+
+    if (!traveller.lastUkStayAddress?.trim()) {
+      errors[`t${index}_lastUkStayAddress`] =
+        "Last Egypt stay address is required";
+    } else if (containsMaliciousPatterns(traveller.lastUkStayAddress)) {
+      errors[`t${index}_lastUkStayAddress`] =
+        "Invalid characters detected in stay address";
+    }
+  }
+
+  if (typeof traveller.willBeHostedInUk !== "boolean") {
+    errors[`t${index}_willBeHostedInUk`] = "Please answer the host question";
+  } else if (traveller.willBeHostedInUk) {
+    if (!traveller.hostName?.trim()) {
+      errors[`t${index}_hostName`] = "Host name is required";
+    } else if (containsMaliciousPatterns(traveller.hostName)) {
+      errors[`t${index}_hostName`] = "Invalid characters detected in host name";
+    }
+
+    if (!traveller.hostType) {
+      errors[`t${index}_hostType`] = "Host type is required";
+    }
+
+    if (!traveller.hostPhoneNumber?.trim()) {
+      errors[`t${index}_hostPhoneNumber`] = "Host phone number is required";
+    }
+
+    if (!traveller.hostFullAddress?.trim()) {
+      errors[`t${index}_hostFullAddress`] = "Host full address is required";
+    } else if (containsMaliciousPatterns(traveller.hostFullAddress)) {
+      errors[`t${index}_hostFullAddress`] =
+        "Invalid characters detected in host address";
+    }
+  }
+
+  if (!traveller.travelExpensePayer) {
+    errors[`t${index}_travelExpensePayer`] =
+      "Please select who is paying for travel expenses";
+  }
+
+  if (
+    traveller.travelExpensePayer === "Commercial entity in Egypt" ||
+    traveller.travelExpensePayer === "Other"
+  ) {
+    if (!traveller.travelExpensePayerDetails?.trim()) {
+      errors[`t${index}_travelExpensePayerDetails`] =
+        "Please provide payer details";
+    } else if (containsMaliciousPatterns(traveller.travelExpensePayerDetails)) {
+      errors[`t${index}_travelExpensePayerDetails`] =
+        "Invalid characters detected in payer details";
     }
   }
 
@@ -179,7 +287,7 @@ export const validateContactDetails = (
 
   //Address validations
   if (!traveller.address?.trim()) {
-    errors[`t${index}_address`] = "Home address is required";
+    errors[`t${index}_address`] = "Current address is required";
   } else if (/^\d+$/.test(traveller.address.trim())) {
     errors[`t${index}_address`] = "Address cannot contain only numbers";
   } else if (!/^[\w\s.,'-]+$/.test(traveller.address.trim())) {
@@ -221,10 +329,6 @@ export const validateDocuments = (
     errors[`t${index}_passportPhoto`] = "Passport bio page is required";
   }
 
-  if (!traveller.personalPhoto) {
-    errors[`t${index}_personalPhoto`] = "Personal photo is required";
-  }
-
   return errors;
 };
 
@@ -234,18 +338,14 @@ export const validateDeclaration = (
 ): { [key: string]: string } => {
   const errors: { [key: string]: string } = {};
 
-  if (!traveller.declarationAccepted) {
-    errors[`t${index}_declarationAccepted`] = "You must accept the declaration";
-  }
-
   if (!traveller.termsAccepted) {
     errors[`t${index}_termsAccepted`] =
       "You must accept the terms and conditions";
   }
 
-  if (!traveller.googlePoliciesAccepted) {
-    errors[`t${index}_googlePoliciesAccepted`] =
-      "You must accept the google policies and terms";
+  if (!traveller.nonRefundableAccepted) {
+    errors[`t${index}_nonRefundableAccepted`] =
+      "You must accept the non-refundable policy";
   }
 
   return errors;
