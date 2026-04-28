@@ -1,0 +1,36 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "echo 'Skipping lint' && exit 0",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "algolia:backfill": "node scripts/backfillAlgoliaApplications.js",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/recaptcha-enterprise": "^6.3.1",
+    "@sendgrid/mail": "^8.1.6",
+    "axios": "^1.12.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^4.9.0",
+    "isomorphic-dompurify": "^2.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}

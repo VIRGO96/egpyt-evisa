@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===== HELPER FUNCTIONS =====
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isActiveAdmin() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && userData.role == 'admin' && userData.isActive == true;
+    }
+    
+    // ===== DEFAULT: DENY ALL =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // ===== ADMIN ACCESS RULES =====
+    
+    // Users collection - Only authenticated users can read their own profile
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if false;  // Backend only for updates
+    }
+    
+    // Applications collection - Admin access only
+    match /applications/{document=**} {
+      allow read, write: if isActiveAdmin();
+    }
+    
+    // Travellers collection - Admin access only
+    match /travellers/{document=**} {
+      allow read, write: if isActiveAdmin();
+    }
+    
+    // Payments collection - Admin access only
+    match /payments/{document=**} {
+      allow read: if isActiveAdmin();
+      allow write: if false;  // Don't allow direct writes to payments
+    }
+    
+    // ===== SECURITY CHECKS =====
+    // 1. isAuthenticated() - User must be logged in via Firebase Auth
+    // 2. isActiveAdmin() - User must have role='admin' AND isActive=true
+    // 3. Direct Firestore calls only - No third-party access
+  }
+}

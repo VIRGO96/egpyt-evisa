@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 210 79% 41%;
+    --primary-foreground: 0 0% 100%;
+    --darkBlue: 210 70% 28%;
+    --secondary: 210 11% 96%;
+    --secondary-foreground: 0 0% 4%;
+    --muted: 210 11% 96%;
+    --muted-foreground: 210 11% 46%;
+    --accent: 210 11% 96%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 82%;
+    --input: 0 0% 82%;
+    --ring: 210 79% 41%;
+    --radius: 0.75rem;
+    /* --gov-green: 152 100% 22%;
+    --gov-green-hover: 152 100% 18%;
+    --gov-green-foreground: 0 0% 100%; */
+    --gov-green: 210 79% 41%;
+    --gov-green-hover: 225 100% 40%;
+    --gov-green-foreground: 0 0% 100%;
+    --success: 152 69% 31%;
+    --success-foreground: 0 0% 100%;
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --hero-bg: 180 55% 88%;
+    --hero-accent: 180 75% 55%;
+    --hero-accent-bright: 180 85% 50%;
+    --hero-text: 210 90% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-lato;
+    font-family: "Lato", sans-serif;
+    font-weight: 400;
+    background: hsl(var(--muted) / 0.3);
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: 30px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+
+  .react-tel-input .flag-dropdown {
+    border: 3px solid red !important;
+  }
+}
+
+@layer components {
+  /* Enhanced button animations */
+  .btn-hover {
+    @apply transition-all duration-200 transform hover:scale-105 active:scale-95;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  /* Form input enhancements */
+  .form-input {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary hover:border-primary/50;
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Slide in animation */
+  .slide-in {
+    animation: slideIn 0.5s ease-out forwards;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  ol.main-list {
+    counter-reset: section;
+    list-style: none;
+    /* padding-left: 1rem; */
+  }
+
+  ol.main-list > li {
+    counter-increment: section;
+    margin: 1rem 0;
+    position: relative;
+  }
+
+  ol.main-list > li > strong {
+    font-weight: 900;
+    font-size: 1rem;
+  }
+
+  ol.main-list > li::before {
+    content: counter(section) ". ";
+    font-weight: 600;
+  }
+
+  ol.main-list ol.sub-list {
+    counter-reset: subsection;
+    list-style: none;
+    padding-left: 1.5rem;
+  }
+
+  ol.main-list ol.sub-list > li {
+    margin-top: 12px;
+    counter-increment: subsection;
+  }
+
+  ol.main-list ol.sub-list > li::before {
+    content: counter(section) "." counter(subsection) " ";
+    font-weight: 500;
+  }
+
+  .react-tel-input .flag-dropdown {
+    border-radius: 5px !important;
+    border: none !important;
+  }
+
+  /* Pulse animation for loading states */
+  .pulse-soft {
+    animation: pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulseSoft {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+}

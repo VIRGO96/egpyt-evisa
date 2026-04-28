@@ -1,0 +1,27 @@
+node_modules/
+*.local
+npm-debug.log
+yarn-error.log
+
+# Firebase
+.firebase/
+lib/
+.cache/
+
+# Environment files
+.env
+config.env
+
+# Logs
+*.log
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db
+
+# in functions/.gitignore
+*.json
+!package.json
+!firebase.json
+
+config.env
