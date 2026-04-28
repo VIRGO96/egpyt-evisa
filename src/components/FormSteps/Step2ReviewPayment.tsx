@@ -1,6 +1,7 @@
 import { StepProps } from "@/types/form";
 import { GovButton } from "@/components/ui/button-variants";
 import { useEffect, useState } from "react";
+import { COUNTRIES } from "@/utils/countries";
 
 export const Step7ReviewPayment = ({
   formData,
@@ -26,7 +27,7 @@ export const Step7ReviewPayment = ({
         email: traveller?.email || "",
         phone: traveller?.phoneNumber || "",
         nationality: traveller?.nationality || "",
-        visa_type: "United Kingdom ETA - 2 years, Multiple entry",
+        visa_type: formData.visaType || "",
       },
       timestamp: new Date().toISOString(),
     });
@@ -34,6 +35,9 @@ export const Step7ReviewPayment = ({
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const getCountryName = (code?: string) =>
+    COUNTRIES.find((country) => country.code === code)?.name || code || "";
 
   // const pushEvent = (data: any) => {
   //   if (typeof window === "undefined") return;
@@ -89,7 +93,7 @@ export const Step7ReviewPayment = ({
           email: firstTraveller.email || "customer@example.com",
           phone: `${phoneNumber}`,
         },
-        description: `UK ETA Application - ${
+        description: `Egypt eVisa Application - ${
           firstTraveller.fullName || "Traveller"
         }`,
         metadata: {
@@ -172,8 +176,7 @@ export const Step7ReviewPayment = ({
                 <div>
                   <p className="font-bold text-blue-900">Application type:</p>
                   <p className="text-blue-800">
-                    {formData.visaType ||
-                      "United Kingdom ETA - 2 years, Multiple entry"}
+                    {formData.visaType}
                   </p>
                 </div>
                 <div>
@@ -196,6 +199,38 @@ export const Step7ReviewPayment = ({
 
                 <div className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
                   <h5 className="font-semibold text-base mb-3 text-gray-700">
+                    Travel information
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-bold text-gray-600">
+                        Country of departure:
+                      </p>
+                      <p className="text-gray-900">
+                        {getCountryName(traveller?.countryOfDeparture)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-600">
+                        Expected arrival date:
+                      </p>
+                      <p className="text-gray-900">
+                        {traveller?.expectedArrivalDate}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-600">
+                        Expected departure date:
+                      </p>
+                      <p className="text-gray-900">
+                        {traveller?.expectedDepartureDate}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                  <h5 className="font-semibold text-base mb-3 text-gray-700">
                     Personal information
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -205,11 +240,25 @@ export const Step7ReviewPayment = ({
                     </div>
                     <div>
                       <p className="font-bold text-gray-600">Nationality:</p>
-                      <p className="text-gray-900">{traveller?.nationality}</p>
+                      <p className="text-gray-900">
+                        {getCountryName(traveller?.nationality)}
+                      </p>
                     </div>
                     <div>
                       <p className="font-bold text-gray-600">Date of birth:</p>
                       <p className="text-gray-900">{traveller?.dateOfBirth}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-600">Profession:</p>
+                      <p className="text-gray-900">{traveller?.jobTitle}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-600">Employer name:</p>
+                      <p className="text-gray-900">{traveller?.employerName}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-600">Marital status:</p>
+                      <p className="text-gray-900">{traveller?.maritalStatus}</p>
                     </div>
                     <div>
                       <p className="font-bold text-gray-600">
@@ -219,31 +268,15 @@ export const Step7ReviewPayment = ({
                         {traveller?.passportNumber}
                       </p>
                     </div>
-                    {traveller?.passportExpiry && (
-                      <div>
-                        <p className="font-bold text-gray-600">
-                          Passport expiry:
-                        </p>
-                        <p className="text-gray-900">
-                          {traveller?.passportExpiry}
-                        </p>
-                      </div>
-                    )}
-                    {traveller?.otherNames && (
-                      <div>
-                        <p className="font-bold text-gray-600">Other names:</p>
-                        <p className="text-gray-900">
-                          {traveller?.otherNamesValue}
-                        </p>
-                      </div>
-                    )}
                     {traveller?.otherNationalities && (
                       <div className="col-span-2">
                         <p className="font-bold text-gray-600">
                           Other nationalities:
                         </p>
                         <p className="text-gray-900">
-                          {traveller?.otherNationalitiesValue?.join(", ")}
+                          {traveller?.otherNationalitiesValue
+                            ?.map((code) => getCountryName(code))
+                            .join(", ")}
                         </p>
                       </div>
                     )}
@@ -252,32 +285,98 @@ export const Step7ReviewPayment = ({
 
                 <div className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
                   <h5 className="font-semibold text-base mb-3 text-gray-700">
-                    Employment
+                    Travel history and sponsorship
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="font-bold text-gray-600">
-                        Employment status:
+                        Visited Egypt in the past:
                       </p>
                       <p className="text-gray-900">
-                        {traveller?.hasJob ? "Employed" : "Not Employed"}
+                        {traveller?.visitedUkBefore ? "Yes" : "No"}
                       </p>
                     </div>
-                    {traveller?.hasJob && (
+                    {traveller?.visitedUkBefore && (
                       <>
                         <div>
-                          <p className="font-bold text-gray-600">Job title:</p>
-                          <p className="text-gray-900">{traveller?.jobTitle}</p>
-                        </div>
-                        <div className="">
                           <p className="font-bold text-gray-600">
-                            Employer name:
+                            Last Egypt entry date:
                           </p>
                           <p className="text-gray-900">
-                            {traveller?.employerName}
+                            {traveller?.lastUkEntryDate}
+                          </p>
+                        </div>
+                        {traveller?.lastUkExitDate && (
+                          <div>
+                            <p className="font-bold text-gray-600">
+                              Last Egypt exit date:
+                            </p>
+                            <p className="text-gray-900">
+                              {traveller?.lastUkExitDate}
+                            </p>
+                          </div>
+                        )}
+                        <div className="col-span-1 sm:col-span-2">
+                          <p className="font-bold text-gray-600">
+                            Where did you stay during your last visit:
+                          </p>
+                          <p className="text-gray-900">
+                            {traveller?.lastUkStayAddress}
                           </p>
                         </div>
                       </>
+                    )}
+                    <div>
+                      <p className="font-bold text-gray-600">
+                        Hosted in Egypt:
+                      </p>
+                      <p className="text-gray-900">
+                        {traveller?.willBeHostedInUk ? "Yes" : "No"}
+                      </p>
+                    </div>
+                    {traveller?.willBeHostedInUk && (
+                      <>
+                        <div>
+                          <p className="font-bold text-gray-600">Host name:</p>
+                          <p className="text-gray-900">{traveller?.hostName}</p>
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-600">Host type:</p>
+                          <p className="text-gray-900">{traveller?.hostType}</p>
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-600">
+                            Host phone number:
+                          </p>
+                          <p className="text-gray-900">
+                            {traveller?.hostPhoneNumber}
+                          </p>
+                        </div>
+                        <div className="col-span-1 sm:col-span-2">
+                          <p className="font-bold text-gray-600">
+                            Host full address:
+                          </p>
+                          <p className="text-gray-900">
+                            {traveller?.hostFullAddress}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                    <div>
+                      <p className="font-bold text-gray-600">
+                        Who is paying for your travel expenses:
+                      </p>
+                      <p className="text-gray-900">
+                        {traveller?.travelExpensePayer}
+                      </p>
+                    </div>
+                    {traveller?.travelExpensePayerDetails && (
+                      <div className="col-span-1 sm:col-span-2">
+                        <p className="font-bold text-gray-600">Payer details:</p>
+                        <p className="text-gray-900">
+                          {traveller?.travelExpensePayerDetails}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -301,88 +400,56 @@ export const Step7ReviewPayment = ({
                     </div>
                     <div>
                       <p className="font-bold text-gray-600">Country:</p>
-                      <p className="text-gray-900">{traveller?.country}</p>
+                      <p className="text-gray-900">
+                        {getCountryName(traveller?.country)}
+                      </p>
                     </div>
-                    {traveller?.zipCode && (
-                      <div>
-                        <p className="font-bold text-gray-600">
-                          Zip/postal code:
-                        </p>
-                        <p className="text-gray-900">{traveller?.zipCode}</p>
-                      </div>
-                    )}
                     {traveller?.address && (
                       <div className="col-span-1 sm:col-span-2">
-                        <p className="font-bold text-gray-600">Address:</p>
+                        <p className="font-bold text-gray-600">
+                          Current address:
+                        </p>
                         <p className="text-gray-900">{traveller?.address}</p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {(traveller?.parentName ||
-                  traveller?.hasCriminalConviction !== undefined ||
-                  traveller?.hasWarCrimesHistory !== undefined) && (
-                  <div className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
-                    <h5 className="font-semibold text-base mb-3 text-gray-700">
-                      Additional information
-                    </h5>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      {traveller?.parentName && (
-                        <div>
-                          <p className="font-bold text-gray-600">
-                            Parent/guardian name:
-                          </p>
-                          <p className="text-gray-900">
-                            {traveller?.parentName}
-                          </p>
-                        </div>
-                      )}
-                      {traveller?.hasCriminalConviction !== undefined && (
-                        <div className="col-span-2">
-                          <p className="font-bold text-gray-600">
-                            Criminal conviction:
-                          </p>
-                          <p className="text-gray-900">
-                            {traveller?.hasCriminalConviction ? "Yes" : "No"}
-                          </p>
-                          {traveller?.hasCriminalConviction && (
-                            <div className="mt-2 pl-4 border-l-2 border-gray-300">
-                              <p className="text-xs text-gray-600">
-                                Details: {traveller?.crimeDetails}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                Country: {traveller?.convictionCountry}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                Sentenced over 12 months:{" "}
-                                {traveller?.sentencedOver12Months
-                                  ? "Yes"
-                                  : "No"}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {traveller?.hasWarCrimesHistory !== undefined && (
-                        <div className="col-span-2">
-                          <p className="font-bold text-gray-600">
-                            War crimes history:
-                          </p>
-                          <p className="text-gray-900">
-                            {traveller?.hasWarCrimesHistory ? "Yes" : "No"}
-                          </p>
-                          {traveller?.hasWarCrimesHistory &&
-                            traveller?.warCrimesTypes && (
-                              <p className="text-xs text-gray-600 mt-1 pl-4 border-l-2 border-gray-300">
-                                Types: {traveller?.warCrimesTypes.join(", ")}
-                              </p>
-                            )}
-                        </div>
-                      )}
+                <div className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                  <h5 className="font-semibold text-base mb-3 text-gray-700">
+                    Declaration & consent
+                  </h5>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5">
+                        {traveller?.termsAccepted ? "✓" : "—"}
+                      </span>
+                      <div>
+                        <p className="font-bold text-gray-600">
+                          Terms, conditions & privacy policy
+                        </p>
+                        <p className="text-gray-900">
+                          {traveller?.termsAccepted ? "Accepted" : "Not accepted"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5">
+                        {traveller?.nonRefundableAccepted ? "✓" : "—"}
+                      </span>
+                      <div>
+                        <p className="font-bold text-gray-600">
+                          Non-refundable policy
+                        </p>
+                        <p className="text-gray-900">
+                          {traveller?.nonRefundableAccepted
+                            ? "Accepted"
+                            : "Not accepted"}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                )}
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Passport bio page */}
@@ -457,155 +524,6 @@ export const Step7ReviewPayment = ({
                       </div>
                     )}
                   </div>
-
-                  {/* Personal photo */}
-                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-semibold text-sm text-gray-700">
-                        Personal photo
-                      </p>
-                      {traveller?.personalPhoto ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary/90">
-                          Uploaded
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          Required
-                        </span>
-                      )}
-                    </div>
-
-                    {traveller?.personalPhoto ? (
-                      <div className="space-y-2">
-                        <div className="relative h-52 bg-gray-100 rounded-md overflow-hidden border border-gray-200 flex items-center justify-center">
-                          {traveller.personalPhoto.type ===
-                          "application/pdf" ? (
-                            <a
-                              href={traveller.personalPhoto.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex flex-col items-center justify-center text-gray-700"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-12 w-12 mb-2"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 4v16m8-8H4"
-                                />
-                              </svg>
-                              <span className="text-xs truncate">
-                                {traveller.personalPhoto.name}
-                              </span>
-                              <span className="text-xs text-blue-600 underline mt-1">
-                                View PDF
-                              </span>
-                            </a>
-                          ) : (
-                            <img
-                              src={traveller.personalPhoto.url}
-                              alt="Personal Photo"
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-                        {traveller.personalPhoto.type !== "application/pdf" && (
-                          <p className="text-xs text-gray-500 truncate text-center">
-                            {traveller.personalPhoto.name ||
-                              "personal-photo.jpg"}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="h-24 flex items-center justify-center bg-gray-50 rounded-md border-2 border-dashed border-gray-300">
-                        <p className="text-sm text-gray-500 text-center px-2">
-                          No file uploaded
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Parent Passport bio page */}
-                  {traveller?.parentPassportPhoto && (
-                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="font-semibold text-sm text-gray-700">
-                          Parent passport bio page
-                        </p>
-                        {traveller?.parentPassportPhoto ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary/90">
-                            Uploaded
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            Required
-                          </span>
-                        )}
-                      </div>
-
-                      {traveller?.parentPassportPhoto ? (
-                        <div className="space-y-2">
-                          <div className="relative h-52 bg-gray-100 rounded-md overflow-hidden border border-gray-200 flex items-center justify-center">
-                            {traveller.parentPassportPhoto.type ===
-                            "application/pdf" ? (
-                              <a
-                                href={traveller.parentPassportPhoto.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex flex-col items-center justify-center text-gray-700"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-12 w-12 mb-2"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 4v16m8-8H4"
-                                  />
-                                </svg>
-                                <span className="text-xs truncate">
-                                  {traveller.parentPassportPhoto.name}
-                                </span>
-                                <span className="text-xs text-blue-600 underline mt-1">
-                                  View PDF
-                                </span>
-                              </a>
-                            ) : (
-                              <img
-                                src={traveller.parentPassportPhoto.url}
-                                alt="Parent Passport Preview"
-                                className="w-full h-full object-contain p-2"
-                              />
-                            )}
-                          </div>
-                          {traveller.parentPassportPhoto.type !==
-                            "application/pdf" && (
-                            <p className="text-xs text-gray-500 truncate text-center">
-                              {traveller.parentPassportPhoto.name ||
-                                "parent-passport-document.jpg"}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="h-24 flex items-center justify-center bg-gray-50 rounded-md border-2 border-dashed border-gray-300">
-                          <p className="text-sm text-gray-500 text-center px-2">
-                            No file uploaded
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
