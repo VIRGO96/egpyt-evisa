@@ -25,7 +25,8 @@
     "express-rate-limit": "^7.1.5",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^4.9.0",
-    "isomorphic-dompurify": "^2.3.0"
+    "isomorphic-dompurify": "^2.3.0",
+    "@sendgrid/eventwebhook": "^8.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",

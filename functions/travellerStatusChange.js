@@ -148,6 +148,8 @@ exports.onTravellerStatusChange = onDocumentUpdated(
 
     const emailData = {
       to: email,
+      applicationId: applicationId,
+      travellerId: afterData.passportNumber || null,
       templateId,
       dynamicTemplateData: dynamicData,
     };

@@ -136,6 +136,8 @@ exports.tapWebhook = onRequest(
           if (travellerEmail) {
             await sendSGMail({
               to: travellerEmail,
+              applicationId: refNumber,
+              travellerId: traveller.passportNumber || null,
               templateId: "d-2542a7468435433e923c33950511c512",
               dynamicTemplateData: {
                 application_id: refNumber,
@@ -166,6 +168,8 @@ exports.tapWebhook = onRequest(
 
           await sendSGMail({
             to: traveller.email.toLowerCase().trim(),
+            applicationId: refNumber,
+            travellerId: traveller.passportNumber || null,
             templateId: "d-9c7f8645622c417fab9208c710cf878f",
             dynamicTemplateData: {
               ref_number: refNumber,

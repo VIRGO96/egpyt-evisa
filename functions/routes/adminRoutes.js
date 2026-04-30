@@ -9,6 +9,8 @@ const {
   updateApplicationStatus,
   updateTravellerField,
   getStats,
+  getEmailLogs,
+  getEmailLogById,
 } = require("../controllers/adminController");
 
 // User routes
@@ -26,5 +28,9 @@ router.patch("/travellers/:docId", updateTravellerField);
 
 // Stats routes
 router.get("/stats", getStats);
+
+// Email Log routes
+router.get("/email-logs", getEmailLogs);
+router.get("/email-logs/:id", getEmailLogById);
 
 module.exports = router;

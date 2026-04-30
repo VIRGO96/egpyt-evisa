@@ -6,6 +6,8 @@ const { secrets: definedSecrets } = require("./utils/secrets");
 const paymentRoutes = require("./routes/paymentRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const { handleSendGridEvents } = require("./controllers/webhookController");
+
 const { verifyAdminToken } = require("./middleware/adminAuth");
 const {
   validateAndSanitize,
@@ -34,6 +36,10 @@ app.use(cspHeaders);                        // Content Security Policy headers
 app.use(cors({ origin: true }));
 app.use(bodyParser.json());
 app.use(validateContentType);               // Validate Content-Type header
+
+// Webhooks (Bypass strict input validation, signature verification is handled in controller)
+app.post("/webhooks/sendgrid/events", handleSendGridEvents);
+
 app.use(detectSuspiciousActivity);          // Detect XSS/SQL injection patterns
 app.use(validateAndSanitize);               // Sanitize all inputs
 app.use(generalLimiter);                    // Rate limiting for all endpoints

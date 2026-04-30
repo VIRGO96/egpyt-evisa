@@ -21,6 +21,7 @@ const secrets = {
   ALGOLIA_APP_ID: defineSecret("ALGOLIA_APP_ID"),
   ALGOLIA_ADMIN_KEY: defineSecret("ALGOLIA_ADMIN_KEY"),
   ALGOLIA_APPLICATION_INDEX: defineSecret("ALGOLIA_APPLICATION_INDEX"),
+  SENDGRID_VERIFICATION_KEY: defineSecret("SENDGRID_VERIFICATION_KEY"),
 };
 
 const getSecrets = async (requestedKeys) => {

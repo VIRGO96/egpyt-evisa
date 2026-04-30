@@ -71,11 +71,11 @@ exports.getApplications = async (req, res) => {
 
     // Execute query
     const snapshot = await applicationsQuery.get();
-    
+
     const applications = await Promise.all(
       snapshot.docs.map(async (doc) => {
         const appData = doc.data();
-        
+
         // Get travellers for this application
         const travellersQuery = await db
           .collection("travellers")
@@ -406,15 +406,15 @@ exports.getStats = async (req, res) => {
 
     // Calculate statistics
     const totalApplications = applications.length;
-    
+
     const pendingApplications = applications.filter(
       (app) => app.status === "pending" || app.paymentStatus === "pending"
     ).length;
-    
+
     const paidApplications = applications.filter(
       (app) => app.paymentStatus === "completed"
     ).length;
-    
+
     const totalRevenue = payments
       .filter((p) => p.status === "CAPTURED" || p.status === "AUTHORIZED")
       .reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -433,3 +433,124 @@ exports.getStats = async (req, res) => {
     });
   }
 };
+
+/**
+ * Get paginated list of email logs from SendGrid webhooks
+ * GET /api/v1/admin/email-logs
+ * Query params: limit, page, to
+ */
+exports.getEmailLogs = async (req, res) => {
+  try {
+    const { limit = 10, page = 0, to, applicationId, search } = req.query;
+    const limitCount = parseInt(limit);
+    const pageNum = parseInt(page);
+
+    // Determine search term: prefer `search` param, fallback to `to` for backward compat
+    const searchTerm = (search || to || "").toLowerCase().trim();
+
+    let logsQuery = db.collection("email_logs");
+
+    if (searchTerm) {
+      if (applicationId) {
+        // Can't combine range query on `to` with equality on `applicationId`
+        // in Firestore without a composite index — filter applicationId in-memory below
+      }
+      // Prefix range query: matches any email starting with searchTerm
+      // e.g. "ahmad" matches "ahmad@gmail.com", "ahmad.ali@..."
+      logsQuery = logsQuery
+        .orderBy("to")
+        .startAt(searchTerm)
+        .endAt(searchTerm + "\uf8ff");
+    } else {
+      if (applicationId) {
+        logsQuery = logsQuery.where("applicationId", "==", applicationId.trim());
+      }
+      // Order by creation date when no search term
+      logsQuery = logsQuery.orderBy("createdAt", "desc");
+    }
+
+    // Apply pagination
+    if (pageNum > 0) {
+      const offset = pageNum * limitCount;
+      logsQuery = logsQuery.offset(offset);
+    }
+
+    logsQuery = logsQuery.limit(limitCount);
+
+    // Execute query
+    const snapshot = await logsQuery.get();
+
+    let logs = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // If both searchTerm and applicationId provided, filter applicationId in-memory
+    if (searchTerm && applicationId) {
+      logs = logs.filter(log => log.applicationId === applicationId.trim());
+    }
+
+    // Get total count
+    let countQuery = db.collection("email_logs");
+    if (searchTerm) {
+      countQuery = countQuery
+        .orderBy("to")
+        .startAt(searchTerm)
+        .endAt(searchTerm + "\uf8ff");
+    } else if (applicationId) {
+      countQuery = countQuery.where("applicationId", "==", applicationId.trim());
+    }
+    const countSnapshot = await countQuery.count().get();
+    const totalCount = countSnapshot.data().count;
+
+    return res.status(200).json({
+      success: true,
+      data: logs,
+      totalCount,
+      page: pageNum,
+      limit: limitCount
+    });
+  } catch (error) {
+    console.error("❌ Error fetching email logs:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch email logs",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Get detailed email log by ID
+ * GET /api/v1/admin/email-logs/:id
+ */
+exports.getEmailLogById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const logDoc = await db.collection("email_logs").doc(id).get();
+
+    if (!logDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: "Email log not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: logDoc.id,
+        ...logDoc.data()
+      }
+    });
+  } catch (error) {
+    console.error("❌ Error fetching email log details:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch email log details",
+      error: error.message
+    });
+  }
+};
+
